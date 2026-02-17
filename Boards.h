@@ -1120,7 +1120,7 @@
       #define EEPROM_OFFSET EEPROM_SIZE-EEPROM_RESERVED
       #define HAS_EEPROM false
       #define HAS_SD false
-      #define HAS_DISPLAY true
+      #define HAS_DISPLAY false //Temporarially disable display code to not burn out the e-ink until the display code is fixed 
       #define DISPLAY EINK_BW
       #define DISPLAY_MODEL GxEPD2_154_D67
       #define BLE_MANUFACTURER "LilyGO"
