@@ -6,7 +6,8 @@ Release/*.hex
 Release/*.zip
 Release/*.json
 Console/build
-build/*
+build
+.sketch/
 .vscode
 .arduino/
 .arduino-cache/
