@@ -14,6 +14,7 @@ Firstly, figure out which MCU platform your supported board is based on. The tab
 | LilyGO LoRa32 v2.1 |  [Buy here](https://www.lilygo.cc/products/lora3) | SX1276/8 | ESP32 | With and without TCXO |
 | Heltec LoRa32 v2 | No link | SX1276/8 | ESP32 | Discontinued? |
 | Heltec LoRa32 v3 | [Buy here](https://heltec.org/project/wifi-lora-32-v3/) | SX1262 | ESP32 | 
+| Heltec LoRa32 v4 | [Docs](https://docs.heltec.org/en/node/esp32/wifi_lora_32/index.html) | SX1262 | ESP32-S3 | Initial CE bring-up target |
 | Homebrew ESP32 boards | | Any supported | ESP32 | This can be any board with an Adafruit Feather (or generic) ESP32 chip |
 
 ### ESP32
@@ -35,6 +36,7 @@ Next, you need to find the name of the target for your board. Please reference t
 | LilyGO LoRa32 v2.1 | `lora32_v21` |
 | Heltec LoRa32 v2 | `heltec32_v2` |
 | Heltec LoRa32 v3 | `heltec32_v3` | 
+| Heltec LoRa32 v4 | `heltec32_v4` |
 | Homebrew ESP32 boards | `genericesp32` |
 
 After you've ascertained the target for the board simply run the following to compile for the board:
@@ -64,6 +66,7 @@ After flashing a custom board, you will also need to provision the EEPROM before
 
 - platform must either be AVR, ESP32 or NRF52
 - hwrev is required (any integer between 1 and 255)
+- Current CE Heltec LoRa32 v4 support uses provisional CE-specific product/model IDs so it does not collide with this fork's existing Wireless Paper identifiers.
 - model should be something from the list below without the leading `0x` and in lowercase (example `e8`):
 ```
 0x11: [430000000, 510000000, 22, "430 - 510 MHz", "rnode_firmware_rak4631.zip", "SX1262"],
@@ -88,6 +91,8 @@ After flashing a custom board, you will also need to provision the EEPROM before
 0xC9: [850000000, 950000000, 17, "850 - 950 MHz", "rnode_firmware_heltec32v2.zip", "SX1276"],
 0xC5: [470000000, 510000000, 21, "470 - 510 MHz", "rnode_firmware_heltec32v3.zip", "SX1262"],
 0xCA: [863000000, 928000000, 21, "863 - 928 MHz", "rnode_firmware_heltec32v3.zip", "SX1262"],
+0xCC: [470000000, 510000000, 22, "470 - 510 MHz", "rnode_firmware_heltec32v4.zip", "SX1262"],
+0xCD: [863000000, 928000000, 22, "863 - 928 MHz", "rnode_firmware_heltec32v4.zip", "SX1262"],
 0xE4: [420000000, 520000000, 17, "420 - 520 MHz", "rnode_firmware_tbeam.zip", "SX1278"],
 0xE9: [850000000, 950000000, 17, "850 - 950 MHz", "rnode_firmware_tbeam.zip", "SX1276"],
 0xE3: [420000000, 520000000, 22, "420 - 520 MHz", "rnode_firmware_tbeam_sx1262.zip", "SX1268"],
@@ -104,6 +109,7 @@ PRODUCT_T32_20 = 0xB0
 PRODUCT_T32_21 = 0xB1
 PRODUCT_H32_V2 = 0xC0
 PRODUCT_H32_V3 = 0xC1
+PRODUCT_H32_V4 = 0xC4
 PRODUCT_TBEAM  = 0xE0
 PRODUCT_HMBRW  = 0xF0
 ```

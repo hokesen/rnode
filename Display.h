@@ -80,7 +80,7 @@ void busyCallback(const void* p) { display_callback(); }
   #define SCL_OLED 15
   #define SDA_OLED 4
   #endif
-#elif BOARD_MODEL == BOARD_HELTEC32_V3
+#elif BOARD_MODEL == BOARD_HELTEC32_V3 || BOARD_MODEL == BOARD_HELTEC32_V4
   #define DISP_RST 21
   #define DISP_ADDR 0x3C
   #define SCL_OLED 18
@@ -333,6 +333,17 @@ bool display_init() {
       // enable vext / pin 36
       pinMode(Vext, OUTPUT);
       digitalWrite(Vext, LOW);
+      delay(50);
+      int pin_display_en = 21;
+      pinMode(pin_display_en, OUTPUT);
+      digitalWrite(pin_display_en, LOW);
+      delay(50);
+      digitalWrite(pin_display_en, HIGH);
+      delay(50);
+      Wire.begin(SDA_OLED, SCL_OLED);
+    #elif BOARD_MODEL == BOARD_HELTEC32_V4
+      pinMode(pin_vext_ctrl, OUTPUT);
+      digitalWrite(pin_vext_ctrl, LOW);
       delay(50);
       int pin_display_en = 21;
       pinMode(pin_display_en, OUTPUT);

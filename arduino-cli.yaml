@@ -1,3 +1,11 @@
+build_cache:
+  path: ./.arduino-cache
+
+directories:
+  data: ./.arduino15
+  downloads: ./.arduino15/staging
+  user: ./.arduino
+
 board_manager:
   additional_urls:
   - https://adafruit.github.io/arduino-board-index/package_adafruit_index.json

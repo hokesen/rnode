@@ -93,6 +93,13 @@
   #define BOARD_HELTEC32_V3   0x3A
   #define MODEL_C5            0xC5 // Heltec Lora32 v3, 433 MHz
   #define MODEL_CA            0xCA // Heltec Lora32 v3, 868 MHz
+
+  // CE-local Heltec v4 identifiers. Upstream uses 0xC3/0x3F/MODEL_C8 for
+  // Heltec v4, but this fork already uses those values for Wireless Paper.
+  #define PRODUCT_H32_V4      0xC4
+  #define BOARD_HELTEC32_V4   0x43
+  #define MODEL_CC            0xCC // Heltec Lora32 v4, 470-510 MHz
+  #define MODEL_CD            0xCD // Heltec Lora32 v4, 863-928 MHz
   
   #define PRODUCT_H_W_PAPER   0xC3
   #define BOARD_H_W_PAPER     0x3F
@@ -561,6 +568,60 @@
           }, 
       };
       const int8_t interface_pins[INTERFACE_COUNT][10] = { 
+                  // SX1262
+          {
+              8, // pin_ss
+              9, // pin_sclk
+              10, // pin_mosi
+              11, // pin_miso
+              13, // pin_busy
+              14, // pin_dio
+              12, // pin_reset
+              -1, // pin_txen
+              -1, // pin_rxen
+              -1  // pin_tcxo_enable
+          }
+      };
+
+    #elif BOARD_MODEL == BOARD_HELTEC32_V4
+      #define IS_ESP32S3 true
+      #define HAS_DISPLAY true
+      #define DISPLAY OLED
+      #define HAS_BLUETOOTH false
+      #define HAS_BLE true
+      #define HAS_PMU true
+      #define HAS_CONSOLE true
+      #define HAS_EEPROM true
+      #define HAS_INPUT true
+      #define HAS_SLEEP true
+      #define PIN_WAKEUP GPIO_NUM_0
+      #define WAKEUP_LEVEL 0
+      #define INTERFACE_COUNT 1
+      #define OCP_TUNED 0x38
+
+      // The V4 target is built against the generic ESP32-S3 core, so define
+      // board-local control pins instead of relying on Heltec BSP symbols.
+      const int pin_btn_usr1 = 0;
+      const int pin_vext_ctrl = 36;
+
+      #if defined(EXTERNAL_LEDS)
+        const int pin_led_rx = 13;
+        const int pin_led_tx = 14;
+      #else
+        const int pin_led_rx = 35;
+        const int pin_led_tx = 35;
+      #endif
+
+      const uint8_t interfaces[INTERFACE_COUNT] = {SX1262};
+      const bool interface_cfg[INTERFACE_COUNT][3] = {
+                    // SX1262
+          {
+              true, // DEFAULT_SPI
+              true, // HAS_TCXO
+              true  // DIO2_AS_RF_SWITCH
+          },
+      };
+      const int8_t interface_pins[INTERFACE_COUNT][10] = {
                   // SX1262
           {
               8, // pin_ss

@@ -8,3 +8,6 @@ Release/*.json
 Console/build
 build/*
 .vscode
+.arduino/
+.arduino-cache/
+.arduino15/
