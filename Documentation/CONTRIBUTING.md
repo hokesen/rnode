@@ -252,7 +252,7 @@ You can of course replace the ESP32 target with the nRF52 target, if you are bui
 Please submit this, and any other support in different areas of the project your board may require, as a PR for my consideration.
 
 # Feature request
-Feature requests are welcomed, given that those requesting it are happy to write it themselves, or a contributor considers it to be important enough to them to write it themselves. They must be written and **properly** tested before being proposed as a pull request for the project on [GitHub](https://github.com/liberatedsystems/RNode_Firmware_CE). **Manufacturers are encouraged to contribute support for their products back to this repository**, and such support will be received gladly, given it does not effect support for other products or boards.
+Feature requests are welcomed, given that those requesting it are happy to write it themselves, or a contributor considers it to be important enough to them to write it themselves. They must be written and **properly** tested before being proposed as a pull request for the project on [GitHub](https://github.com/hokesen/rnode). **Manufacturers are encouraged to contribute support for their products back to this repository**, and such support will be received gladly, given it does not effect support for other products or boards.
 
 # Caveat
-All contributions must not be written using **any** LLM (ChatGPT, etc.), please handwrite them **only**. Any PRs with proposed contributions which have been discovered to be written using an LLM will **NOT** be merged. The contributor concerned may rewrite their entire pull request **by hand** and it may be reconsidered for merging in the future. 
+Contributions are reviewed on their technical quality, clarity, testing, and long-term maintainability. Please review your changes carefully before opening a PR and call out any assumptions, board revisions, or validation gaps that maintainers should know about during review.

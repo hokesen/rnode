@@ -128,16 +128,13 @@ For more detailed instruction and in-depth guides, you can have a look at some o
 You can contribute features and board support to the project if you wish. Please see [here](Documentation/CONTRIBUTING.md).
 
 ### Hardware donations
-If you would like to see support added for a board which you possess, you may donate it to myself, Jacob Eva, so that I can implement support for it into this project. There will be no official timescale given for implementation however, but I will try my best when I have time :) Please [contact me (scroll to the bottom)](https://liberatedsystems.co.uk/about) if you wish to donate hardware to the project.
+If you would like to see support added for a board which you possess, please open an issue with the exact hardware revision, radio variant, pinout references, and links to any schematics or vendor documentation you have available. Hardware donations can still be helpful for bring-up and validation, but there is no guaranteed implementation timescale.
 
 ### Purchasing products
-You can support the development of the RNode Firmware CE project by purchasing RNodes (to come in the future) and other products from [Liberated Embedded systems](https://liberatedsystems.co.uk), my online business. For more information on my business, please see [here](https://liberatedsystems.co.uk/about/).
-
 From time to time the creator of the [Reticulum](https://reticulum.network) project, Mark Qvist, produces his own RNodes and sells them through his [shop](https://unsigned.io/shop). You may support the development of open, free and private communications systems through purchasing these from him.
 
 ### Monetary donations
-I, the maintainer of this fork, am currently not accepting monetary donations. These are instead better directed to [Mark Qvist](https://unsigned.io), who created the original repository this one is based on, and is the core developer of the [Reticulum](https://reticulum.network) project, which is what the RNode Firmware was designed to supplement as a network adapter.
-You can help support the continued development of open, free and private communications systems by donating to him via one of the following channels:
+If you want to support the broader RNode and Reticulum ecosystem financially, consider donating to [Mark Qvist](https://unsigned.io), who created the original repository this fork is based on and continues to develop [Reticulum](https://reticulum.network). You can do so via one of the following channels:
 
 - Monero:
   ```
@@ -158,11 +155,11 @@ Please see [here](Documentation/FAQ.md).
 
 ## License & Use
 The upstream RNode Firmware is Copyright © 2024 Mark Qvist / [unsigned.io](https://unsigned.io).
-The modified RNode Firmware CE (community edition) is Copyright © Jacob Eva / [Liberated Embedded Systems](https://liberatedsystems.co.uk) and is made available under the **GNU General Public License v3.0**. 
+This fork incorporates prior community-edition work and is made available under the **GNU General Public License v3.0**.
 
 The source code includes an SX1276 driver that is released under MIT License, and Copyright © 2018 Sandeep Mistry / Mark Qvist. The SX126x and SX128x drivers are adaptations of this original driver.
 
-You can obtain the source code from [my business Git instance](https://git.liberatedsystems.co.uk/jacob.eva/RNode_Firmware_CE) or [GitHub](https://github.com/liberatedsystems/RNode_Firmware_CE).
+You can obtain the source code for this fork on [GitHub](https://github.com/hokesen/rnode), and trace prior upstream history via the original [RNode Firmware](https://github.com/markqvist/RNode_Firmware) and [RNode Firmware CE](https://github.com/liberatedsystems/RNode_Firmware_CE) repositories.
 
 Every RNode which supports the console functionality also includes an internal copy of it's own firmware source code, that can be downloaded through the [RNode Bootstrap Console](https://unsigned.io/rnode_bootstrap_console), by putting the RNode into Console Mode (which can be activated by holding the user button for 10 seconds and releasing it).
 
