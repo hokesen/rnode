@@ -8,6 +8,7 @@ Release/*.json
 Console/build
 build
 .sketch/
+Logs/
 .vscode
 .arduino/
 .arduino-cache/

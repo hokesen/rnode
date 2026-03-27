@@ -103,6 +103,15 @@ char sbuf[128];
 
 uint8_t *packet_queue[INTERFACE_COUNT];
 
+void host_disconnected() {
+  if (bt_state != BT_STATE_CONNECTED) {
+    cable_state = CABLE_STATE_DISCONNECTED;
+  }
+  last_rssi = -292;
+  last_rssi_raw = 0x00;
+  last_snr_raw = 0x80;
+}
+
 void setup() {
   #if MCU_VARIANT == MCU_ESP32
     boot_seq();
@@ -423,6 +432,10 @@ void setup() {
 
   // Validate board health, EEPROM and config
   validate_status();
+
+  #if MCU_VARIANT == MCU_ESP32
+    wifi_remote_init();
+  #endif
 }
 
 void lora_receive(RadioInterface* radio) {
@@ -829,33 +842,40 @@ void transmit(RadioInterface* radio, uint16_t size) {
 }
 
 void serial_callback(uint8_t sbyte) {
-  if (IN_FRAME && sbyte == FEND && 
-            command == CMD_DATA) {
-    IN_FRAME = false;
+  if (IN_FRAME && sbyte == FEND) {
+    if (command == CMD_DATA) {
+      if (interface < INTERFACE_COUNT) {
+          if (!fifo16_isfull(&packet_starts[interface]) && (queued_bytes[interface] < (getQueueSize(interface)))) {
+              uint16_t s = current_packet_start[interface];
+              int32_t e = queue_cursor[interface]-1; if (e == -1) e = (getQueueSize(interface))-1;
+              uint16_t l;
 
-    if (interface < INTERFACE_COUNT) {
-        if (!fifo16_isfull(&packet_starts[interface]) && (queued_bytes[interface] < (getQueueSize(interface)))) {
-            uint16_t s = current_packet_start[interface];
-            int32_t e = queue_cursor[interface]-1; if (e == -1) e = (getQueueSize(interface))-1;
-            uint16_t l;
+              if (s != e) {
+                  l = (s < e) ? e - s + 1: (getQueueSize(interface)) - s + e + 1;
+              } else {
+                  l = 1;
+              }
 
-            if (s != e) {
-                l = (s < e) ? e - s + 1: (getQueueSize(interface)) - s + e + 1;
-            } else {
-                l = 1;
-            }
+              if (l >= MIN_L) {
+                  queue_height[interface]++;
 
-            if (l >= MIN_L) {
-                queue_height[interface]++;
+                  fifo16_push(&packet_starts[interface], s);
+                  fifo16_push(&packet_lengths[interface], l);
+                  current_packet_start[interface] = queue_cursor[interface];
+              }
 
-                fifo16_push(&packet_starts[interface], s);
-                fifo16_push(&packet_lengths[interface], l);
-                current_packet_start[interface] = queue_cursor[interface];
-            }
-
-        }
+          }
+      }
+    #if MCU_VARIANT == MCU_ESP32
+    } else if (wifi_remote_finalize_frame(command, cmdbuf, frame_len)) {
+      interface = 0;
+    #endif
     }
 
+    IN_FRAME = true;
+    command = CMD_UNKNOWN;
+    ESCAPE = false;
+    frame_len = 0;
   } else if (sbyte == FEND) {
     IN_FRAME = true;
     command = CMD_UNKNOWN;
@@ -1249,6 +1269,54 @@ void serial_callback(uint8_t sbyte) {
       #if HAS_BLE
         if (sbyte == 0x01) { bt_debond_all(); }
       #endif
+    } else if (command == CMD_WIFI_MODE) {
+      #if MCU_VARIANT == MCU_ESP32
+        if (sbyte == 0xFF) {
+          kiss_indicate_wifi_mode();
+        } else {
+          wifi_conf_save_mode(sbyte);
+          kiss_indicate_wifi_mode();
+          kiss_indicate_wifi_security();
+        }
+      #endif
+    } else if (command == CMD_WIFI_CHN) {
+      #if MCU_VARIANT == MCU_ESP32
+        if (sbyte == 0xFF) {
+          kiss_indicate_wifi_channel();
+        } else {
+          wifi_conf_save_channel(sbyte);
+          kiss_indicate_wifi_channel();
+        }
+      #endif
+    } else if (command == CMD_WIFI_SEC) {
+      #if MCU_VARIANT == MCU_ESP32
+        if (sbyte == 0xFF) {
+          kiss_indicate_wifi_security();
+        } else if (sbyte == 0x00) {
+          wifi_conf_clear_remote_key();
+          kiss_indicate_wifi_key_state();
+          kiss_indicate_wifi_security();
+        }
+      #endif
+    } else if (
+      command == CMD_WIFI_SSID ||
+      command == CMD_WIFI_PSK ||
+      command == CMD_WIFI_IP ||
+      command == CMD_WIFI_NM ||
+      command == CMD_WIFI_KEY
+    ) {
+      #if MCU_VARIANT == MCU_ESP32
+        if (sbyte == FESC) {
+          ESCAPE = true;
+        } else {
+          if (ESCAPE) {
+            if (sbyte == TFEND) sbyte = FEND;
+            if (sbyte == TFESC) sbyte = FESC;
+            ESCAPE = false;
+          }
+          if (frame_len < CMD_L) cmdbuf[frame_len++] = sbyte;
+        }
+      #endif
     } else if (command == CMD_DISP_INT) {
       #if HAS_DISPLAY
         if (sbyte == FESC) {
@@ -1608,6 +1676,10 @@ void loop() {
     if (!console_active && bt_ready) update_bt();
   #endif
 
+  #if MCU_VARIANT == MCU_ESP32
+    update_wifi();
+  #endif
+
   #if HAS_INPUT
     input_read();
   #endif
@@ -1746,32 +1818,52 @@ void buffer_serial() {
 
     uint8_t c = 0;
 
-    #if HAS_BLUETOOTH || HAS_BLE == true
-    while (
-      c < MAX_CYCLES &&
-      ( (bt_state != BT_STATE_CONNECTED && Serial.available()) || (bt_state == BT_STATE_CONNECTED && SerialBT.available()) )
-      )
-    #else
-    while (c < MAX_CYCLES && Serial.available())
-    #endif
-    {
+    while (c < MAX_CYCLES) {
+      bool source_ready = false;
       c++;
 
       #if HAS_BLUETOOTH || HAS_BLE == true
         if (bt_state == BT_STATE_CONNECTED) {
-          if (!fifo_isfull(&serialFIFO)) {
+          if (SerialBT.available() && !fifo_isfull(&serialFIFO)) {
             fifo_push(&serialFIFO, SerialBT.read());
+            source_ready = true;
           }
         } else {
-          if (!fifo_isfull(&serialFIFO)) {
-            fifo_push(&serialFIFO, Serial.read());
-          }
+          #if MCU_VARIANT == MCU_ESP32
+            if (wifi_remote_available() && !fifo_isfull(&serialFIFO)) {
+              fifo_push(&serialFIFO, wifi_remote_read());
+              source_ready = true;
+            } else if (Serial.available() && !fifo_isfull(&serialFIFO)) {
+              fifo_push(&serialFIFO, Serial.read());
+              source_ready = true;
+            }
+          #else
+            if (Serial.available() && !fifo_isfull(&serialFIFO)) {
+              fifo_push(&serialFIFO, Serial.read());
+              source_ready = true;
+            }
+          #endif
         }
       #else
-        if (!fifo_isfull(&serialFIFO)) {
-          fifo_push(&serialFIFO, Serial.read());
-        }
+        #if MCU_VARIANT == MCU_ESP32
+          if (wifi_remote_available() && !fifo_isfull(&serialFIFO)) {
+            fifo_push(&serialFIFO, wifi_remote_read());
+            source_ready = true;
+          } else if (Serial.available() && !fifo_isfull(&serialFIFO)) {
+            fifo_push(&serialFIFO, Serial.read());
+            source_ready = true;
+          }
+        #else
+          if (Serial.available() && !fifo_isfull(&serialFIFO)) {
+            fifo_push(&serialFIFO, Serial.read());
+            source_ready = true;
+          }
+        #endif
       #endif
+
+      if (!source_ready) {
+        break;
+      }
     }
 
     serial_buffering = false;

@@ -70,6 +70,9 @@ uint8_t eeprom_read(uint32_t mapped_addr);
 	#include "Device.h"
 #endif
 #if MCU_VARIANT == MCU_ESP32
+  #include "Remote.h"
+#endif
+#if MCU_VARIANT == MCU_ESP32
   #if BOARD_MODEL == BOARD_HELTEC32_V3
     //https://github.com/espressif/esp-idf/issues/8855
     #include "hal/wdt_hal.h"
@@ -745,7 +748,15 @@ void sort_interfaces() {
 void serial_write(uint8_t byte) {
 	#if HAS_BLUETOOTH || HAS_BLE == true
 		if (bt_state != BT_STATE_CONNECTED) {
-			Serial.write(byte);
+      #if MCU_VARIANT == MCU_ESP32
+        if (wifi_remote_authenticated()) {
+          wifi_remote_write(byte);
+        } else {
+          Serial.write(byte);
+        }
+      #else
+			  Serial.write(byte);
+      #endif
 		} else {
 			SerialBT.write(byte);
       #if MCU_VARIANT == MCU_NRF52 && HAS_BLE
@@ -756,7 +767,15 @@ void serial_write(uint8_t byte) {
       #endif
 		}
 	#else
-		Serial.write(byte);
+    #if MCU_VARIANT == MCU_ESP32
+      if (wifi_remote_authenticated()) {
+        wifi_remote_write(byte);
+      } else {
+		    Serial.write(byte);
+      }
+    #else
+		  Serial.write(byte);
+    #endif
 	#endif
 }
 

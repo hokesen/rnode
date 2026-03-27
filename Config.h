@@ -54,6 +54,7 @@
 	#define CMD_L      64
 
 	#define eeprom_addr(a) (a+EEPROM_OFFSET)
+    #define config_addr(a) (a)
 
     #define PA_OUTPUT_RFO_PIN      0
     #define PA_OUTPUT_PA_BOOST_PIN 1

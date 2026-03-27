@@ -21,11 +21,14 @@ def printable_text(data):
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Listen for LoRa packets on an RNode for a fixed duration")
+    parser = argparse.ArgumentParser(
+        description="Listen for LoRa packets on an RNode for a fixed duration "
+        "(defaults match the local MeshCore profile)."
+    )
     parser.add_argument("--port", required=True, help="Serial port for the RNode")
-    parser.add_argument("--freq", type=int, required=True, help="Frequency in Hz")
-    parser.add_argument("--bw", type=int, default=125000, help="Bandwidth in Hz")
-    parser.add_argument("--sf", type=int, default=8, help="Spreading factor")
+    parser.add_argument("--freq", type=int, default=910525000, help="Frequency in Hz")
+    parser.add_argument("--bw", type=int, default=62500, help="Bandwidth in Hz")
+    parser.add_argument("--sf", type=int, default=7, help="Spreading factor")
     parser.add_argument("--cr", type=int, default=5, help="Coding rate")
     parser.add_argument("--txp", type=int, default=2, help="TX power in dBm")
     parser.add_argument("--seconds", type=int, default=20, help="Listen duration in seconds")

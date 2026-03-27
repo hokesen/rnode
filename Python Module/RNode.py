@@ -47,14 +47,20 @@ class KISS():
     CMD_DETECT      = 0x08
     CMD_PROMISC     = 0x0E
     CMD_READY       = 0x0F
+    CMD_SEL_INT     = 0x1F
     CMD_STAT_RX     = 0x21
     CMD_STAT_TX     = 0x22
     CMD_STAT_RSSI   = 0x23
     CMD_STAT_SNR    = 0x24
     CMD_BLINK       = 0x30
     CMD_RANDOM      = 0x40
+    CMD_BOARD       = 0x47
+    CMD_PLATFORM    = 0x48
+    CMD_MCU         = 0x49
     CMD_FW_VERSION  = 0x50
     CMD_ROM_READ    = 0x51
+    CMD_DEV_HASH    = 0x56
+    CMD_HASHES      = 0x60
 
     DETECT_REQ      = 0x73
     DETECT_RESP     = 0x46
@@ -237,6 +243,12 @@ class RNodeInterface():
         if written != len(kiss_command):
             raise IOError("An IO error occurred while configuring frequency for "+self(str))
 
+    def queryFrequency(self):
+        kiss_command = bytes([KISS.FEND, KISS.CMD_FREQUENCY, 0x00, 0x00, 0x00, 0x00, KISS.FEND])
+        written = self.serial.write(kiss_command)
+        if written != len(kiss_command):
+            raise IOError("An IO error occurred while querying frequency for "+self(str))
+
     def setBandwidth(self):
         c1 = self.bandwidth >> 24
         c2 = self.bandwidth >> 16 & 0xFF
@@ -249,12 +261,24 @@ class RNodeInterface():
         if written != len(kiss_command):
             raise IOError("An IO error occurred while configuring bandwidth for "+self(str))
 
+    def queryBandwidth(self):
+        kiss_command = bytes([KISS.FEND, KISS.CMD_BANDWIDTH, 0x00, 0x00, 0x00, 0x00, KISS.FEND])
+        written = self.serial.write(kiss_command)
+        if written != len(kiss_command):
+            raise IOError("An IO error occurred while querying bandwidth for "+self(str))
+
     def setTXPower(self):
         txp = bytes([self.txpower])
         kiss_command = bytes([KISS.FEND])+bytes([KISS.CMD_TXPOWER])+txp+bytes([KISS.FEND])
         written = self.serial.write(kiss_command)
         if written != len(kiss_command):
             raise IOError("An IO error occurred while configuring TX power for "+self(str))
+
+    def queryTXPower(self):
+        kiss_command = bytes([KISS.FEND, KISS.CMD_TXPOWER, 0xFF, KISS.FEND])
+        written = self.serial.write(kiss_command)
+        if written != len(kiss_command):
+            raise IOError("An IO error occurred while querying TX power for "+self(str))
 
     def setSpreadingFactor(self):
         sf = bytes([self.sf])
@@ -263,6 +287,12 @@ class RNodeInterface():
         if written != len(kiss_command):
             raise IOError("An IO error occurred while configuring spreading factor for "+self(str))
 
+    def querySpreadingFactor(self):
+        kiss_command = bytes([KISS.FEND, KISS.CMD_SF, 0xFF, KISS.FEND])
+        written = self.serial.write(kiss_command)
+        if written != len(kiss_command):
+            raise IOError("An IO error occurred while querying spreading factor for "+self(str))
+
     def setCodingRate(self):
         cr = bytes([self.cr])
         kiss_command = bytes([KISS.FEND])+bytes([KISS.CMD_CR])+cr+bytes([KISS.FEND])
@@ -270,32 +300,54 @@ class RNodeInterface():
         if written != len(kiss_command):
             raise IOError("An IO error occurred while configuring coding rate for "+self(str))
 
+    def queryCodingRate(self):
+        kiss_command = bytes([KISS.FEND, KISS.CMD_CR, 0xFF, KISS.FEND])
+        written = self.serial.write(kiss_command)
+        if written != len(kiss_command):
+            raise IOError("An IO error occurred while querying coding rate for "+self(str))
+
     def setRadioState(self, state):
         kiss_command = bytes([KISS.FEND])+bytes([KISS.CMD_RADIO_STATE])+bytes([state])+bytes([KISS.FEND])
         written = self.serial.write(kiss_command)
         if written != len(kiss_command):
             raise IOError("An IO error occurred while configuring radio state for "+self(str))
 
+    def queryRadioParameters(self):
+        self.queryFrequency()
+        self.queryBandwidth()
+        self.queryTXPower()
+        self.querySpreadingFactor()
+        self.queryCodingRate()
+
     def validateRadioState(self):
         self.log("Validating radio configuration for "+str(self)+"...", RNodeInterface.LOG_VERBOSE)
-        sleep(0.25);
+        deadline = time.time() + 3.0
+
+        while time.time() < deadline:
+            self.queryRadioParameters()
+            sleep(0.3)
+
+            if (
+                self.frequency == self.r_frequency and
+                self.bandwidth == self.r_bandwidth and
+                self.txpower == self.r_txpower and
+                self.sf == self.r_sf and
+                self.cr == self.r_cr
+            ):
+                return True
+
         if (self.frequency != self.r_frequency):
             self.log("Frequency mismatch", RNodeInterface.LOG_ERROR)
-            self.validcfg = False
         if (self.bandwidth != self.r_bandwidth):
             self.log("Bandwidth mismatch", RNodeInterface.LOG_ERROR)
-            self.validcfg = False
         if (self.txpower != self.r_txpower):
             self.log("TX power mismatch", RNodeInterface.LOG_ERROR)
-            self.validcfg = False
         if (self.sf != self.r_sf):
             self.log("Spreading factor mismatch", RNodeInterface.LOG_ERROR)
-            self.validcfg = False
+        if (self.cr != self.r_cr):
+            self.log("Coding rate mismatch", RNodeInterface.LOG_ERROR)
 
-        if (self.validcfg):
-            return True
-        else:
-            return False
+        return False
 
     def setPromiscuousMode(self, state):
         if state == True:
@@ -533,4 +585,3 @@ class RNodeInterface():
 
     def __str__(self):
         return "RNodeInterface["+self.name+"]"
-

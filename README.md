@@ -116,6 +116,8 @@ rnodeconf --autoinstall
 
 For most of the supported device types, it is also possible to use [Liam Cottle's Web-based RNode Flasher](https://liamcottle.github.io/rnode-flasher/). This option may be easier if you're not familiar with using a command line interface.
 
+ESP32 and ESP32-S3 builds also have an authenticated WiFi control path for remote status, LoRa radio control, packet send/listen, and selected admin commands. See [WiFi Remote Control](Documentation/WIFI_REMOTE_CONTROL.md) and [wifi_remote_tool.py](Python%20Module/wifi_remote_tool.py).
+
 For more detailed instruction and in-depth guides, you can have a look at some of these resources:
 
 - Create a [basic RNode from readily available development boards](https://unsigned.io/guides/2022_01_25_installing-rnode-firmware-on-supported-devices.html)
